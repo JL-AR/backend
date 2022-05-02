@@ -1,0 +1,28 @@
+{
+  "name": "obsa",
+  "version": "1.0.0",
+  "description": "Sistema de gesion y administracion de reclamos, solicitudes, stock, empleados y mas.",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JL-AR/backend.git"
+  },
+  "author": "JL-AR",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JL-AR/backend/issues"
+  },
+  "homepage": "https://github.com/JL-AR/backend#readme",
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "express": "^4.17.3",
+    "helmet": "^5.0.2",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^6.2.7",
+    "nodemon": "^2.0.15",
+    "redis": "^4.0.4"
+  }
+}
