@@ -8,10 +8,10 @@ const Solicitud = new Schema({
     fecha_alta: { type: Date, default: Date.now, required: true },
     nombres: { type: String, required: true },
     apellidos: { type: String, required: true },
-    dni: { type: Number, required: true, max: 9 },
+    dni: { type: Number, required: true, max: 99999999 },
     direccion: { type: Schema.Types.ObjectId, ref: 'domicilio', required: true },
     documentacion: { type: Boolean, default: false },
     ordenTrabajo: { type: Schema.Types.ObjectId, ref: 'ordenTrabajo' }
 });
- 
+
 module.exports = mongoose.model('Solicitud', Solicitud);
