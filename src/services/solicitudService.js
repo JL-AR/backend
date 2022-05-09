@@ -45,7 +45,8 @@ const creaSolicitud = async (datosSolicitud) => {
             nombres: datosSolicitud.nombres,
             apellidos: datosSolicitud.apellidos,
             dni: datosSolicitud.dni,
-            direccion: domicilio._id
+            direccion: domicilio._id,
+            email: datosSolicitud.email
         });
         
         await Solicitud.create([solicitud], { session: session });

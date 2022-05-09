@@ -11,7 +11,8 @@ const Solicitud = new Schema({
     dni: { type: Number, required: true, max: 99999999 },
     direccion: { type: Schema.Types.ObjectId, ref: 'domicilio', required: true },
     documentacion: { type: Boolean, default: false },
-    ordenTrabajo: { type: Schema.Types.ObjectId, ref: 'ordenTrabajo' }
+    ordenTrabajo: { type: Schema.Types.ObjectId, ref: 'ordenTrabajo' },
+    email: { type: String, required: true}
 });
 
 module.exports = mongoose.model('Solicitud', Solicitud);

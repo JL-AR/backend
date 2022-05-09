@@ -6,7 +6,8 @@ const Servicio = new Schema({
     nombre: { type: String, required: true },
     descripcion : { type: String },
     detalle : { type: String },
-    sector: { type: Schema.Types.ObjectId, ref: 'sector', required: true }
+    sector: { type: Schema.Types.ObjectId, ref: 'sector', required: true },
+    criticidad: { type: String, required: true }
 });
  
 module.exports = mongoose.model('Servicio', Servicio);
