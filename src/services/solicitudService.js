@@ -64,4 +64,9 @@ const creaSolicitud = async (datosSolicitud) => {
     
 }
 
-module.exports = { creaSolicitud }
+// Informe general de solicitudes, se paginan los datos por pagina y cantidad por pagina mediante param options //
+const informeSolicitud = async (options) => {
+    return await Solicitud.paginate({}, options);
+}
+
+module.exports = { creaSolicitud, informeSolicitud }

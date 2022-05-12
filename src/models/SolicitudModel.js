@@ -1,5 +1,6 @@
 const { Schema } = require('mongoose');
 const { mongoose } = require('../../db/mongoDb');
+const  mongoosePaginate = require('mongoose-paginate-v2');
 
 const Solicitud = new Schema({
     numero: { type: Number, required: true, unique: true },
@@ -14,5 +15,7 @@ const Solicitud = new Schema({
     ordenTrabajo: { type: Schema.Types.ObjectId, ref: 'ordenTrabajo' },
     email: { type: String, required: true}
 });
+
+Solicitud.plugin(mongoosePaginate);
 
 module.exports = mongoose.model('Solicitud', Solicitud);
