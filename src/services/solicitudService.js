@@ -66,6 +66,7 @@ const creaSolicitud = async (datosSolicitud) => {
 
 // Informe general de solicitudes, se paginan los datos por pagina y cantidad por pagina mediante param options //
 const informeSolicitud = async (options) => {
+    options.populate = ['direccion', 'tipo', 'tracking'];
     return await Solicitud.paginate({}, options);
 }
 
