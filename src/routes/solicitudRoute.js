@@ -12,5 +12,7 @@ const solicitudCtrl = require('../controllers/solicitudController');
 router.post('/', [solicitudMidd.validaCampos, servicioMidd.validaServicio, domicilioMidd.validaCalle], async (req, res) => await solicitudCtrl.creaSolicitud(req, res));
 // Informe de solicitud //
 router.get('/', paginadoMidd.validaCampos, async (req, res) => await solicitudCtrl.informeSolicitud(req, res));
+// Busqueda por proximidad //
+router.get('/busca', paginadoMidd.validaCampos, async (req, res) => await solicitudCtrl.busca(req, res));
 
 module.exports = router;

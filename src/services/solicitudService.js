@@ -70,4 +70,27 @@ const informeSolicitud = async (options) => {
     return await Solicitud.paginate({}, options);
 }
 
-module.exports = { creaSolicitud, informeSolicitud }
+// Busqueda por proximidad en campos indexados //
+const busca = async (options) => { 
+    options.populate = ['direccion', 'tipo', 'tracking'];
+    let val = String(options.valor);
+    val = new RegExp(val, "ig")
+    // Verifica si el valor a busacr es numerico o texto //
+    let result;
+    if (Number.isInteger(options.valor)) {
+        let aggregate = Solicitud.aggregate().addFields({ num: { $toString: "$numero" }, dniStr: { $toString: "$dni" }});
+        aggregate.match({$or: [{ num: val }, {dniStr: val}]}); 
+
+        result = await Solicitud.aggregatePaginate(aggregate, options);
+    } else {
+        result = await Solicitud.paginate({
+            $or: [{ nombres: { $regex: options.valor } },
+            { apellidos: { $regex: options.valor }},
+            { email: { $regex: options.valor }}]
+        }, options); 
+    }
+    
+    return result;
+}
+
+module.exports = { creaSolicitud, informeSolicitud, busca }
