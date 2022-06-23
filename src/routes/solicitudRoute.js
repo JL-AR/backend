@@ -14,5 +14,7 @@ router.post('/', [solicitudMidd.validaCampos, servicioMidd.validaServicio, domic
 router.get('/', paginadoMidd.validaCampos, async (req, res) => await solicitudCtrl.informeSolicitud(req, res));
 // Busqueda por proximidad //
 router.get('/busca', paginadoMidd.validaCampos, async (req, res) => await solicitudCtrl.busca(req, res));
+// Actualiza solicitud existente //
+router.put('/', solicitudMidd.validaCamposUpdate, async (req, res) => await solicitudCtrl.actualizaSolicitud(req, res));
 
 module.exports = router;

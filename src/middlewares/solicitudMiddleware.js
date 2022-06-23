@@ -1,9 +1,9 @@
 // Helpers //
 const respuestas = require('../helpers/respuestas');
-// Services //
-const Servicio = require('../models/ServicioModel');
 // Models //
 const Calle = require('../models/CalleModel');
+const Servicio = require('../models/ServicioModel');
+const Estado = require('../models/EstadoModel');
 
 // Valida campos obligatorios y numericos del body //
 const validaCampos = async (req, res, next) => {
@@ -28,12 +28,32 @@ const validaCampos = async (req, res, next) => {
     next();
 }
 
+// Valida campos p/ actualizacion de solicitud //
+const validaCamposUpdate = async (req, res, next) => {
+    if (Object.keys(req.body).length === 0) return respuestas.error400(res, `Se debe indicar los campos a actualizar (tipo, tracking, nombres, apellidos, dni o direccion).`);
+    if (req.body.tipo) {
+        let servicio = await Servicio.findOne({ codigo: req.body.tipo }).exec();
+        if (!servicio) return respuestas.error400(res, `El servicio '${req.body.tipo}' no corresponde.`);
+    }
+    if (req.body.tracking) {
+        if (!req.body.tracking.estado || !req.body.tracking.observacion) return respuestas.error400(res, `Para actualizar tracking se debe indicar 'estado' y 'observacion.'`);
+        let estado = await Estado.findOne({ codigo: req.body.tracking.estado }).exec();
+        if (!estado) return respuestas.error400(res, `El estado '${req.body.tracking.estado}' no corresponde. Indique estado valido para actualizar tracking`);
+    }
+    if (req.body.direccion) {
+        if (!req.body.direccion.calle || !req.body.direccion.numeracion) return respuestas.error400(res, `Para actualizar direccion se debe indicar 'calle' y 'numeracion.'`);
+        let calle = await Calle.findOne({ codigo: req.body.direccion.calle }).exec();
+        if (!calle) return respuestas.error400(res, `La calle '${req.body.direccion.calle}' no corresponde. Indique calle valida para actualizar direccion`);
+    }
+
+    next();
+}
+
 // Valida que el codigo de calle enviado en body sea correcto //
 const validaCalle = async (req, res, next) => {
-
     let calle = await Calle.findOne({ codigo: req.body.direccion.calle}).exec();
     if (!calle) return respuestas.error400(res, "El codigo de 'calle' no corresponde.");
     next();
 }
 
-module.exports = { validaCampos, validaCalle }
+module.exports = { validaCampos, validaCalle, validaCamposUpdate }

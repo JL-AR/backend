@@ -1,3 +1,4 @@
+// Modelos //
 const Solicitud = require('../models/SolicitudModel');
 const Contador = require('../models/ContadorModel');
 const Servicio = require('../models/ServicioModel');
@@ -77,7 +78,7 @@ const busca = async (options) => {
     val = new RegExp(val, "ig")
     // Verifica si el valor a busacr es numerico o texto //
     let result;
-    if (Number.isInteger(options.valor)) {
+    /*if (Number.isInteger(options.valor)) {
         let aggregate = Solicitud.aggregate().addFields({ num: { $toString: "$numero" }, dniStr: { $toString: "$dni" }});
         aggregate.match({$or: [{ num: val }, {dniStr: val}]}); 
 
@@ -85,12 +86,94 @@ const busca = async (options) => {
     } else {
         result = await Solicitud.paginate({
             $or: [{ nombres: { $regex: options.valor } },
+            { dni: { $regex: options.valor } },
             { apellidos: { $regex: options.valor }},
             { email: { $regex: options.valor }}]
         }, options); 
-    }
+    }*/
+ 
+    let condiciones;
+    // Validacion de ingreso numerico o string //
+    let valor = parseInt(options.valor);
+    if (!isNaN(valor)) {
+        let aggregate = Solicitud.aggregate().addFields({ num: { $toString: "$numero" }, dniStr: { $toString: "$dni" }});
+        console.log(String(valor));
+        aggregate.match({$or: [{ "num": { $regex: String(valor) } }, {"dniStr": { $regex: String(valor) }}]}); 
+        result = await Solicitud.aggregatePaginate(aggregate, options);
+    } else {
+        condiciones = [{ nombres: { $regex: options.valor } },
+            { apellidos: { $regex: options.valor }},
+            { email: { $regex: options.valor }}];
+        result = await Solicitud.paginate({
+                $or: condiciones
+            }, options);     
+    }  
     
     return result;
 }
 
-module.exports = { creaSolicitud, informeSolicitud, busca }
+const actualizaSolicitud = async (datosNuevos) => {
+    const session = await Solicitud.startSession();
+    session.startTransaction();
+    let datos = {};
+
+    try {
+
+        let solicitud = await Solicitud.findOne({ _id: datosNuevos._id }).session(session).exec();
+        // update p/ tipo de servicio //
+        if (datosNuevos.tipo) {
+            let servicio = await Servicio.findOne({ codigo: datosNuevos.tipo }).session(session).exec();
+            datos.tipo = servicio._id;
+        }
+
+        // update de tracking (se agrega movimiento) //
+        if (datosNuevos.tracking) {
+            let estado = await Estado.findOne({ codigo: datosNuevos.tracking.estado}).session(session).exec();
+            let movimiento = await new Movimiento({
+                estado: estado._id,
+                descripcion: datosNuevos.tracking.descripcion
+            });
+
+            await Movimiento.create([movimiento], { session: session });
+
+            solicitud.tracking.push(movimiento._id);
+            await solicitud.save(session);
+        }
+
+        // update de nombres, apellidos y dni //
+        if (datosNuevos.nombres) datos.nombres = datosNuevos.nombres;
+        if (datosNuevos.apellidos) datos.apellidos = datosNuevos.apellidos;
+        if (datosNuevos.dni) datos.dni = datosNuevos.dni;
+
+        // update de direccion //
+        if (datosNuevos.direccion) {
+            let calle = await Calle.findOne({ codigo : datosNuevos.direccion.calle }).session(session).exec();
+            let datos = {
+                calle: calle._id,
+                numeracion: datosNuevos.direccion.numeracion
+            }
+            if (datosNuevos.direccion.piso) datos.piso = datosNuevos.direccion.piso;
+            if (datosNuevos.direccion.departamento) datos.departamento = datosNuevos.direccion.departamento;
+            if (datosNuevos.direccion.barrio) datos.barrio = datosNuevos.direccion.barrio;
+
+            await Domicilio.findOneAndUpdate({ _id: solicitud.direccion._id }, datos).session(session).exec();
+        }
+
+        await Solicitud.findOneAndUpdate({ _id: datosNuevos._id }, datos).session(session).exec();        
+
+        await session.commitTransaction();
+        session.endSession();
+
+        return await Solicitud.findOne({ _id: datosNuevos._id }).populate(['tipo', 'tracking', 'direccion', {
+            path: 'direccion',
+            populate: { path: 'calle', model: 'Calle'}
+        }]).exec();
+    } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
+        throw error; 
+    }
+    
+}
+
+module.exports = { creaSolicitud, informeSolicitud, busca, actualizaSolicitud }
