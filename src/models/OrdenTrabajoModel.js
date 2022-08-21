@@ -13,4 +13,4 @@ const OrdenTrabajo = new Schema({
     materiales_conexion: [{ type: Schema.Types.ObjectId, ref: 'materialesSolicitud' }]
 });
  
-module.exports = mongoose.model('Servicio', Servicio);
+module.exports = mongoose.model('OrdenTrabajo', OrdenTrabajo);

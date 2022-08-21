@@ -43,6 +43,7 @@ const creaSolicitud = async (datosSolicitud) => {
             numero: contador.seq,
             tipo: servicio.id,
             tracking: tracking,
+            ultimo_estado: estado._id,
             nombres: datosSolicitud.nombres,
             apellidos: datosSolicitud.apellidos,
             dni: datosSolicitud.dni,
@@ -51,7 +52,10 @@ const creaSolicitud = async (datosSolicitud) => {
         });
         
         await Solicitud.create([solicitud], { session: session });
-
+        
+        await Solicitud.populate([solicitud],['tipo', 'tracking',{ path: 'tracking', populate: { path: 'estado', model: 'Estado' }},
+            'direccion', { path: 'direccion', populate: { path: 'calle', model: 'Calle'}}, 'ultimo_estado']);
+        
         await session.commitTransaction();
         session.endSession();
 
@@ -67,48 +71,97 @@ const creaSolicitud = async (datosSolicitud) => {
 
 // Informe general de solicitudes, se paginan los datos por pagina y cantidad por pagina mediante param options //
 const informeSolicitud = async (options) => {
-    options.populate = ['direccion', 'tipo', 'tracking'];
+    options.populate = ['direccion', 'tipo', 'tracking', { path: 'tracking', populate: { path: 'estado', model: 'Estado' }},
+        { path: 'direccion', populate: { path: 'calle', model: 'Calle'}}, 'ultimo_estado'];
     return await Solicitud.paginate({}, options);
 }
 
 // Busqueda por proximidad en campos indexados //
-const busca = async (options) => { 
-    options.populate = ['direccion', 'tipo', 'tracking'];
-    let val = String(options.valor);
-    val = new RegExp(val, "ig")
-    // Verifica si el valor a busacr es numerico o texto //
-    let result;
-    /*if (Number.isInteger(options.valor)) {
-        let aggregate = Solicitud.aggregate().addFields({ num: { $toString: "$numero" }, dniStr: { $toString: "$dni" }});
-        aggregate.match({$or: [{ num: val }, {dniStr: val}]}); 
+const busca = async (options) => {
+    options.populate = ['direccion', 'tipo', 'tracking', { path: 'tracking', populate: { path: 'estado', model: 'Estado' }},
+        { path: 'direccion', populate: { path: 'calle', model: 'Calle'}}, 'ultimo_estado'];
 
-        result = await Solicitud.aggregatePaginate(aggregate, options);
-    } else {
-        result = await Solicitud.paginate({
-            $or: [{ nombres: { $regex: options.valor } },
-            { dni: { $regex: options.valor } },
-            { apellidos: { $regex: options.valor }},
-            { email: { $regex: options.valor }}]
-        }, options); 
-    }*/
- 
-    let condiciones;
-    // Validacion de ingreso numerico o string //
-    let valor = parseInt(options.valor);
-    if (!isNaN(valor)) {
-        let aggregate = Solicitud.aggregate().addFields({ num: { $toString: "$numero" }, dniStr: { $toString: "$dni" }});
-        console.log(String(valor));
-        aggregate.match({$or: [{ "num": { $regex: String(valor) } }, {"dniStr": { $regex: String(valor) }}]}); 
-        result = await Solicitud.aggregatePaginate(aggregate, options);
-    } else {
-        condiciones = [{ nombres: { $regex: options.valor } },
-            { apellidos: { $regex: options.valor }},
-            { email: { $regex: options.valor }}];
-        result = await Solicitud.paginate({
-                $or: condiciones
-            }, options);     
-    }  
+    const session = await Solicitud.startSession();
+    session.startTransaction();
+    let result = {};
+    let aggregate = {};
     
+    try {        
+        switch (options.campo) {
+            case 'TIPO_SOLICITUD':
+                let servicio = await Servicio.findOne({ codigo: options.valor }).session(session).exec();
+                options.valor = servicio;
+                result = await Solicitud.paginate({ 'tipo': options.valor }, options);
+                break;
+            case 'APELLIDO_NOMBRE':
+                let valoresIngresados = options.valor.split(" ");
+                let valoresABuscar = [];
+                valoresIngresados.forEach( item => {
+                    let nom = { nombres: { $regex: item.trim(), $options: 'i' }};
+                    let ape = { apellidos: { $regex: item.trim(), $options: 'i' }};
+                    valoresABuscar.push(nom, ape);
+                });
+
+                result = await Solicitud.paginate({ $or: valoresABuscar }, options);
+                break;
+            case 'DNI':
+                aggregate = Solicitud.aggregate().addFields({ dniStr: { $toString: "$dni" }});
+                aggregate.match({"dniStr": { $regex: String(options.valor) }});                
+                result = await Solicitud.aggregatePaginate(aggregate, options);                
+                await Solicitud.populate(result.docs, options.populate);
+                break;
+            case 'NUMERO':
+                aggregate = Solicitud.aggregate().addFields({ numStr: { $toString: "$numero" }});
+                aggregate.match({"numStr": { $regex: String(options.valor) }});                
+                result = await Solicitud.aggregatePaginate(aggregate, options);
+                await Solicitud.populate(result.docs, options.populate);
+                break;
+            case 'DIRECCION':
+                // Palabras ingresadas p/ busqueda //
+                let valIngresados = options.valor.split(" ");
+                // Busca coincidencia en calles //
+                let valABuscarCalle = [];
+                valIngresados.forEach( item => {
+                    valABuscarCalle.push({ nombre: { $regex: item.trim(), $options: 'i' }});
+                });                
+                let calles = await Calle.find({ $or: valABuscarCalle }).session(session).exec();                
+                // Si se encuentran coincidencias se obtienes los ids de las calles //
+                let callesIds = [];
+                if (calles) calles.forEach(item => callesIds.push(item._id));
+
+                // Se preparan los datos a buscar //
+                let datosABuscar = [];
+                if (callesIds.length) datosABuscar.push({ calle: { $in: callesIds }});
+                valIngresados.forEach(item => datosABuscar.push({ numeracion: { $regex: item.trim(), $options: 'i' }}));
+                // Se obtienen Domicilios coincidentes //
+                let direcciones = await Domicilio.find({ $or: datosABuscar }).session(session).exec();
+                direccionesIds = [];
+                direcciones.forEach(item => direccionesIds.push(item._id));
+                // Se obtienen Solicitudes de domicilios correspondientes //
+                result = await Solicitud.paginate({ direccion: { $in: direccionesIds }}, options);
+                break;
+            case 'RANGO_FECHAS':
+                result = await Solicitud.paginate({ fecha_alta: { $gte: new Date(options.inicio), $lte: new Date(options.fin) }}, options);
+                break;
+            case 'ESTADO':
+                let estado = await Estado.findOne({ codigo: options.valor }).session(session).exec();
+                result = await Solicitud.paginate({ 'ultimo_estado': estado._id }, options);
+                break;
+            /* TODO: case 'OT': //desarrollar el alta de OT (VER CASO)
+                break;*/
+            default:
+                break;
+        }
+    } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
+        throw error;
+    }
+
+    await session.commitTransaction();
+    await session.endSession();
+
+   
     return result;
 }
 
@@ -126,17 +179,18 @@ const actualizaSolicitud = async (datosNuevos) => {
             datos.tipo = servicio._id;
         }
 
-        // update de tracking (se agrega movimiento) //
-        if (datosNuevos.tracking) {
-            let estado = await Estado.findOne({ codigo: datosNuevos.tracking.estado}).session(session).exec();
+        // update de tracking (se agrega movimiento) y estado (se actualiza) //
+        if (datosNuevos.ultimo_estado) {
+            let estado = await Estado.findOne({ codigo: datosNuevos.ultimo_estado.estado }).session(session).exec();
             let movimiento = await new Movimiento({
                 estado: estado._id,
-                descripcion: datosNuevos.tracking.descripcion
+                descripcion: datosNuevos.ultimo_estado.descripcion
             });
 
             await Movimiento.create([movimiento], { session: session });
 
             solicitud.tracking.push(movimiento._id);
+            solicitud.ultimo_estado = estado;
             await solicitud.save(session);
         }
 
@@ -164,10 +218,8 @@ const actualizaSolicitud = async (datosNuevos) => {
         await session.commitTransaction();
         session.endSession();
 
-        return await Solicitud.findOne({ _id: datosNuevos._id }).populate(['tipo', 'tracking', 'direccion', {
-            path: 'direccion',
-            populate: { path: 'calle', model: 'Calle'}
-        }]).exec();
+        return await Solicitud.findOne({ _id: datosNuevos._id }).populate(['tipo', 'tracking', 'direccion', { path: 'direccion', populate: { path: 'calle', model: 'Calle'}},
+            'ultimo_estado']).exec();
     } catch (error) {
         await session.abortTransaction();
         session.endSession();

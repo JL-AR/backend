@@ -13,7 +13,7 @@ router.post('/', [solicitudMidd.validaCampos, servicioMidd.validaServicio, domic
 // Informe de solicitud //
 router.get('/', paginadoMidd.validaCampos, async (req, res) => await solicitudCtrl.informeSolicitud(req, res));
 // Busqueda por proximidad //
-router.get('/busca', paginadoMidd.validaCampos, async (req, res) => await solicitudCtrl.busca(req, res));
+router.get('/busca', solicitudMidd.verificaDatosBusqueda, paginadoMidd.validaCampos, async (req, res) => await solicitudCtrl.busca(req, res));
 // Actualiza solicitud existente //
 router.put('/', solicitudMidd.validaCamposUpdate, async (req, res) => await solicitudCtrl.actualizaSolicitud(req, res));
 

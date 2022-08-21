@@ -12,6 +12,7 @@ const validaCampos = async (req, res, next) => {
     if (!req.body.apellidos) return respuestas.error400(res, `El campo 'apellidos' es obligatorio.`);
     if (!req.body.dni) return respuestas.error400(res, `El campo 'dni' es obligatorio.`);
     if (typeof(req.body.dni) != 'number') return respuestas.error400(res, `La propiedad 'dni' debe ser numerica.`);
+    if (req.body.dni && req.body.dni > 99999999) return respuestas.error400(res, `El DNI debe ser menor a 99999999.`);
     if (!req.body.direccion) return respuestas.error400(res, `Se debe indicar una 'direccion' correspondiente a la solicitud.`);
     if (!req.body.direccion.calle) return respuestas.error400(res, `Los datos de 'direccion.calle' es obligatorio.`);
     if (!req.body.direccion.numeracion) return respuestas.error400(res, `Los datos de 'direccion.numeracion' es obligatorio.`);
@@ -45,6 +46,7 @@ const validaCamposUpdate = async (req, res, next) => {
         let calle = await Calle.findOne({ codigo: req.body.direccion.calle }).exec();
         if (!calle) return respuestas.error400(res, `La calle '${req.body.direccion.calle}' no corresponde. Indique calle valida para actualizar direccion`);
     }
+    if (req.body.dni && req.body.dni > 99999999) return respuestas.error400(res, `El DNI debe ser menor a 99999999.`);
 
     next();
 }
@@ -56,4 +58,12 @@ const validaCalle = async (req, res, next) => {
     next();
 }
 
-module.exports = { validaCampos, validaCalle, validaCamposUpdate }
+const verificaDatosBusqueda = async (req, res, next) => {
+    if (!req.body.page) req.body.page = 1;
+    if (!req.body.limit) req.body.limit = 10;
+    if (!req.body.campo) req.body.campo = "";
+    if (!req.body.valor) req.body.valor = "";
+    next();
+}
+
+module.exports = { validaCampos, validaCalle, validaCamposUpdate, verificaDatosBusqueda }
