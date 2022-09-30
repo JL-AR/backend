@@ -6,6 +6,8 @@ const Domicilio = require('../models/DomicilioModel');
 const Calle = require('../models/CalleModel');
 const Estado = require('../models/EstadoModel');
 const Movimiento = require('../models/MovimientoModel');
+// Services //
+const ordenTrabajoService = require('./ordenTrabajoService');
 
 const creaSolicitud = async (datosSolicitud) => {
     const session = await Solicitud.startSession();
@@ -39,6 +41,8 @@ const creaSolicitud = async (datosSolicitud) => {
         await Contador.findOneAndUpdate({ codigo: 'SEQ-SOLICITUD'}, {$inc: { seq: 1} });
         let contador = await Contador.findOne({ codigo: 'SEQ-SOLICITUD'}).session(session).exec();
 
+        let ordenTrabajo = await ordenTrabajoService.creaOT();
+
         let solicitud = await new Solicitud({
             numero: contador.seq,
             tipo: servicio.id,
@@ -48,13 +52,13 @@ const creaSolicitud = async (datosSolicitud) => {
             apellidos: datosSolicitud.apellidos,
             dni: datosSolicitud.dni,
             direccion: domicilio._id,
+            orden_trabajo: ordenTrabajo._id,
             email: datosSolicitud.email
         });
         
         await Solicitud.create([solicitud], { session: session });
         
-        await Solicitud.populate([solicitud],['tipo', 'tracking',{ path: 'tracking', populate: { path: 'estado', model: 'Estado' }},
-            'direccion', { path: 'direccion', populate: { path: 'calle', model: 'Calle'}}, 'ultimo_estado']);
+        await Solicitud.populate([solicitud],['tipo', 'tracking', 'ultimo_estado', 'ordenTrabajo', 'direccion']);
         
         await session.commitTransaction();
         session.endSession();
@@ -211,6 +215,10 @@ const actualizaSolicitud = async (datosNuevos) => {
             if (datosNuevos.direccion.barrio) datos.barrio = datosNuevos.direccion.barrio;
 
             await Domicilio.findOneAndUpdate({ _id: solicitud.direccion._id }, datos).session(session).exec();
+        }
+
+        if (datosNuevos.documentacion) {
+            datos.documentacion = datosNuevos.documentacion;
         }
 
         await Solicitud.findOneAndUpdate({ _id: datosNuevos._id }, datos).session(session).exec();        

@@ -14,7 +14,7 @@ const Solicitud = new Schema({
     dni: { type: Number, required: true, max: 99999999, index: true, text: true },
     direccion: { type: Schema.Types.ObjectId, ref: 'Domicilio', required: true },
     documentacion: { type: Boolean, default: false },
-    orden_trabajo: { type: Schema.Types.ObjectId, ref: 'ordenTrabajo' },
+    orden_trabajo: { type: Schema.Types.ObjectId, ref: 'OrdenTrabajo' },
     email: { type: String, required: true, index: true, text: true }
 });
 

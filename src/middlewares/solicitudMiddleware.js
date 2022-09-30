@@ -47,6 +47,7 @@ const validaCamposUpdate = async (req, res, next) => {
         if (!calle) return respuestas.error400(res, `La calle '${req.body.direccion.calle}' no corresponde. Indique calle valida para actualizar direccion`);
     }
     if (req.body.dni && req.body.dni > 99999999) return respuestas.error400(res, `El DNI debe ser menor a 99999999.`);
+    if (req.body.documentacion && typeof(req.body.documentacion) != 'boolean') return respuestas.error400(res, `La propiedad 'documentacion' debe ser de tipo booleano.`);
 
     next();
 }
