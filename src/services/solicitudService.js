@@ -6,6 +6,7 @@ const Domicilio = require('../models/DomicilioModel');
 const Calle = require('../models/CalleModel');
 const Estado = require('../models/EstadoModel');
 const Movimiento = require('../models/MovimientoModel');
+const OrdenTrabajo = require('../models/OrdenTrabajoModel');
 // Services //
 const ordenTrabajoService = require('./ordenTrabajoService');
 
@@ -76,14 +77,14 @@ const creaSolicitud = async (datosSolicitud) => {
 // Informe general de solicitudes, se paginan los datos por pagina y cantidad por pagina mediante param options //
 const informeSolicitud = async (options) => {
     options.populate = ['direccion', 'tipo', 'tracking', { path: 'tracking', populate: { path: 'estado', model: 'Estado' }},
-        { path: 'direccion', populate: { path: 'calle', model: 'Calle'}}, 'ultimo_estado'];
+        { path: 'direccion', populate: { path: 'calle', model: 'Calle'}}, 'ultimo_estado', 'orden_trabajo'];
     return await Solicitud.paginate({}, options);
 }
 
-// Busqueda por proximidad en campos indexados //
+// Busqueda por campos //
 const busca = async (options) => {
     options.populate = ['direccion', 'tipo', 'tracking', { path: 'tracking', populate: { path: 'estado', model: 'Estado' }},
-        { path: 'direccion', populate: { path: 'calle', model: 'Calle'}}, 'ultimo_estado'];
+        { path: 'direccion', populate: { path: 'calle', model: 'Calle'}}, 'ultimo_estado', 'orden_trabajo'];
 
     const session = await Solicitud.startSession();
     session.startTransaction();
@@ -151,8 +152,10 @@ const busca = async (options) => {
                 let estado = await Estado.findOne({ codigo: options.valor }).session(session).exec();
                 result = await Solicitud.paginate({ 'ultimo_estado': estado._id }, options);
                 break;
-            /* TODO: case 'OT': //desarrollar el alta de OT (VER CASO)
-                break;*/
+            case 'OT':
+                let OT = await OrdenTrabajo.findOne({ numero: options.valor }).session(session).exec();
+                result = await Solicitud.paginate({ 'orden_trabajo': OT._id }, options);
+                break;
             default:
                 break;
         }

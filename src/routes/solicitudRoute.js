@@ -12,7 +12,7 @@ const solicitudCtrl = require('../controllers/solicitudController');
 router.post('/', [solicitudMidd.validaCampos, servicioMidd.validaServicio, domicilioMidd.validaCalle], async (req, res) => await solicitudCtrl.creaSolicitud(req, res));
 // Informe de solicitud //
 router.get('/', paginadoMidd.validaCampos, async (req, res) => await solicitudCtrl.informeSolicitud(req, res));
-// Busqueda por proximidad //
+// Busqueda por campos //
 router.get('/busca', solicitudMidd.verificaDatosBusqueda, paginadoMidd.validaCampos, async (req, res) => await solicitudCtrl.busca(req, res));
 // Actualiza solicitud existente //
 router.put('/', solicitudMidd.validaCamposUpdate, async (req, res) => await solicitudCtrl.actualizaSolicitud(req, res));
