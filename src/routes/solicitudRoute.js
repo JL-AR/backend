@@ -15,6 +15,6 @@ router.get('/', paginadoMidd.validaCampos, async (req, res) => await solicitudCt
 // Busqueda por campos //
 router.get('/busca', solicitudMidd.verificaDatosBusqueda, paginadoMidd.validaCampos, async (req, res) => await solicitudCtrl.busca(req, res));
 // Actualiza solicitud existente //
-router.put('/', solicitudMidd.validaCamposUpdate, async (req, res) => await solicitudCtrl.actualizaSolicitud(req, res));
+router.put('/', [solicitudMidd.validaCamposUpdate, solicitudMidd.validaSolicitudExistente], async (req, res) => await solicitudCtrl.actualizaSolicitud(req, res));
 
 module.exports = router;

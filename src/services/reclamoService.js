@@ -37,15 +37,20 @@ const creaReclamo = async (datosReclamo) => {
         let reclamo = {
             servicio: servicio._id,
             domicilio: domicilio._id,
-            tracking: tracking
+            tracking: tracking,
+            ultimo_estado: estado._id
         }
         if (datosReclamo.nombre) reclamo.nombre = datosReclamo.nombre;
-        if (datosReclamo.observaciones) reclamo.observaciones = datosReclamo.nombre;
+        if (datosReclamo.observaciones) reclamo.observaciones = datosReclamo.observaciones;
         if (datosReclamo.email) reclamo.email = datosReclamo.email;
-        await Reclamo.create([reclamo], {session: session});
 
+        await Reclamo.create([reclamo], {session: session});
+        
         await session.commitTransaction();
         session.endSession();
+
+        let populate = ['domicilio', { path: 'domicilio', populate: { path: 'calle', model: 'Calle'}}, 'servicio', 'tracking', { path: 'tracking', populate: { path: 'estado', model: 'Estado' }}, 'ultimo_estado'];
+        await Reclamo.populate([reclamo], populate);
 
         return reclamo;
 
@@ -56,4 +61,23 @@ const creaReclamo = async (datosReclamo) => {
     }
 }
 
-module.exports = { creaReclamo }
+// Informe general de solicitudes, se paginan los datos por pagina y cantidad por pagina mediante param options //
+const informeReclamo = async (options) => {
+    options.populate = ['domicilio', { path: 'domicilio', populate: { path: 'calle', model: 'Calle'}}, 'tracking', { path: 'tracking', populate: { path: 'estado', model: 'Estado' }}, 'ultimo_estado'];
+      
+    let aggregate = Reclamo.aggregate([{
+        $lookup: {
+            "from": "servicios",
+            "localField": "servicio",
+            "foreignField": "_id",
+            "as": "servicio"
+        }
+    }]).addFields({
+        nivel_criticidad: { $arrayElemAt: ["$servicio.nivel_criticidad", 0]}
+    }).sort('-nivel_criticidad');
+    result = await Reclamo.aggregatePaginate(aggregate, options);
+    await Reclamo.populate(result.docs, options.populate);
+    return result;
+}
+
+module.exports = { creaReclamo, informeReclamo }

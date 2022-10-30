@@ -4,6 +4,7 @@ const respuestas = require('../helpers/respuestas');
 const Calle = require('../models/CalleModel');
 const Servicio = require('../models/ServicioModel');
 const Estado = require('../models/EstadoModel');
+const Solicitud = require('../models/SolicitudModel');
 
 // Valida campos obligatorios y numericos del body //
 const validaCampos = async (req, res, next) => {
@@ -59,6 +60,13 @@ const validaCalle = async (req, res, next) => {
     next();
 }
 
+// Valida existencia de solicitud //
+const validaSolicitudExistente = async (req, res, next) => {
+    let solicitud = await Solicitud.findOne({ _id: req.body._id }).exec();
+    if (!solicitud) return respuestas.error400(res, `El id '${ req.body._id }' no corresponde a una solicitud.`);
+    next();
+}
+
 const verificaDatosBusqueda = async (req, res, next) => {
     if (!req.body.page) req.body.page = 1;
     if (!req.body.limit) req.body.limit = 10;
@@ -67,4 +75,4 @@ const verificaDatosBusqueda = async (req, res, next) => {
     next();
 }
 
-module.exports = { validaCampos, validaCalle, validaCamposUpdate, verificaDatosBusqueda }
+module.exports = { validaCampos, validaCalle, validaCamposUpdate, verificaDatosBusqueda, validaSolicitudExistente }

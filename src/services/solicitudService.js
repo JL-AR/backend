@@ -42,8 +42,6 @@ const creaSolicitud = async (datosSolicitud) => {
         await Contador.findOneAndUpdate({ codigo: 'SEQ-SOLICITUD'}, {$inc: { seq: 1} });
         let contador = await Contador.findOne({ codigo: 'SEQ-SOLICITUD'}).session(session).exec();
 
-        let ordenTrabajo = await ordenTrabajoService.creaOT();
-
         let solicitud = await new Solicitud({
             numero: contador.seq,
             tipo: servicio.id,
@@ -53,7 +51,6 @@ const creaSolicitud = async (datosSolicitud) => {
             apellidos: datosSolicitud.apellidos,
             dni: datosSolicitud.dni,
             direccion: domicilio._id,
-            orden_trabajo: ordenTrabajo._id,
             email: datosSolicitud.email
         });
         
@@ -220,17 +217,18 @@ const actualizaSolicitud = async (datosNuevos) => {
             await Domicilio.findOneAndUpdate({ _id: solicitud.direccion._id }, datos).session(session).exec();
         }
 
-        if (datosNuevos.documentacion) {
-            datos.documentacion = datosNuevos.documentacion;
+        if (!solicitud.orden_trabajo && datosNuevos.documentacion || datosNuevos.ultimo_estado == 'APROBADO') {
+            datos.documentacion = 'true';
+            let ordenTrabajo = await ordenTrabajoService.creaOT();
+            datos.orden_trabajo = ordenTrabajo._id;
         }
 
         await Solicitud.findOneAndUpdate({ _id: datosNuevos._id }, datos).session(session).exec();        
 
         await session.commitTransaction();
         session.endSession();
-
-        return await Solicitud.findOne({ _id: datosNuevos._id }).populate(['tipo', 'tracking', 'direccion', { path: 'direccion', populate: { path: 'calle', model: 'Calle'}},
-            'ultimo_estado']).exec();
+        let populate = ['tipo', 'tracking', 'direccion', { path: 'direccion', populate: { path: 'calle', model: 'Calle'}}, 'ultimo_estado', 'orden_trabajo'];
+        return await Solicitud.findOne({ _id: datosNuevos._id }).populate(populate).exec();
     } catch (error) {
         await session.abortTransaction();
         session.endSession();

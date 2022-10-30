@@ -9,5 +9,7 @@ const domicilioMidd = require('../middlewares/domicilioMiddleware');
 
 // Registro de reclamo //
 router.post('/', [reclamoMidd.validaCampos, servicioMidd.validaServicio, domicilioMidd.validaCalle], async (req, res) => await reclamoCtrl.creaReclamo(req, res));
+// Informe de reclamo //
+router.get('/', async (req, res) => await reclamoCtrl.informeReclamo(req, res));
 
 module.exports = router;
