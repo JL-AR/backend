@@ -80,4 +80,66 @@ const informeReclamo = async (options) => {
     return result;
 }
 
-module.exports = { creaReclamo, informeReclamo }
+const actualizaReclamo = async (datosNuevos) => {
+    const session = await Reclamo.startSession();
+    session.startTransaction();
+    let datos = {};
+
+    try {
+
+        let reclamo = await Reclamo.findOne({ _id: datosNuevos._id }).session(session).exec();
+        // update p/ tipo de servicio //
+        if (datosNuevos.servicio) {
+            let servicio = await Servicio.findOne({ codigo: datosNuevos.servicio }).session(session).exec();
+            datos.servicio = servicio._id;
+        }
+
+        // update de tracking (se agrega movimiento) y estado (se actualiza) //
+        if (datosNuevos.ultimo_estado) {
+            let estado = await Estado.findOne({ codigo: datosNuevos.ultimo_estado.estado }).session(session).exec();
+            let datosMov = {
+                estado: estado._id
+            }
+            if (datosNuevos.ultimo_estado.observacion) datosMov.observacion = datosNuevos.ultimo_estado.observacion;
+            let movimiento = await new Movimiento(datosMov);
+            
+
+            await Movimiento.create([movimiento], { session: session });
+
+            reclamo.tracking.push(movimiento._id);
+            reclamo.ultimo_estado = estado;
+            await reclamo.save(session);
+        }
+
+        // update de nombre, observaciones e email //
+        if (datosNuevos.nombre) datos.nombre = datosNuevos.nombre;
+        if (datosNuevos.observaciones) datos.observaciones = datosNuevos.observaciones;
+        if (datosNuevos.email) datos.email = datosNuevos.email;
+
+        // update de direccion //
+        if (datosNuevos.domicilio) {
+            let calle = await Calle.findOne({ codigo : datosNuevos.domicilio.calle }).session(session).exec();
+            let datos = {
+                calle: calle._id
+            }
+            if (datosNuevos.domicilio.numeracion) datos.numeracion = datosNuevos.domicilio.numeracion;
+            if (datosNuevos.domicilio.barrio) datos.barrio = datosNuevos.domicilio.barrio;
+
+            await Domicilio.findOneAndUpdate({ _id: reclamo.domicilio._id }, datos).session(session).exec();
+        }
+
+        await Reclamo.findOneAndUpdate({ _id: datosNuevos._id }, datos).session(session).exec();        
+
+        await session.commitTransaction();
+        session.endSession();
+        let populate = ['servicio', 'ultimo_estado', 'tracking', 'domicilio', { path: 'domicilio', populate: { path: 'calle', model: 'Calle'}}];
+        return await Reclamo.findOne({ _id: datosNuevos._id }).populate(populate).exec();
+    } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
+        throw error; 
+    }
+    
+}
+
+module.exports = { creaReclamo, informeReclamo, actualizaReclamo }

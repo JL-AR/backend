@@ -186,10 +186,11 @@ const actualizaSolicitud = async (datosNuevos) => {
         // update de tracking (se agrega movimiento) y estado (se actualiza) //
         if (datosNuevos.ultimo_estado) {
             let estado = await Estado.findOne({ codigo: datosNuevos.ultimo_estado.estado }).session(session).exec();
-            let movimiento = await new Movimiento({
-                estado: estado._id,
-                descripcion: datosNuevos.ultimo_estado.descripcion
-            });
+            let datosMov = {
+                estado: estado._id
+            }
+            if (datosNuevos.ultimo_estado.observacion) datosMov.observacion = datosNuevos.ultimo_estado.observacion;
+            let movimiento = await new Movimiento(datosMov);
 
             await Movimiento.create([movimiento], { session: session });
 
