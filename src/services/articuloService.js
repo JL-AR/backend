@@ -33,4 +33,29 @@ const informe = async (options) => {
     return await Articulo.paginate({}, options);
 }
 
-module.exports = { crea, informe }
+const actualiza = async (datosNuevos) => {
+    const session = await Articulo.startSession();
+    session.startTransaction();
+    let datos = {};
+
+    try {
+        if (datosNuevos.codigo) datos.codigo = datosNuevos.codigo;
+        if (datosNuevos.nombre) datos.nombre = datosNuevos.nombre;
+        if (datosNuevos.descripcion) datos.descripcion = datosNuevos.descripcion;
+        if (datosNuevos.stock) datos.stock = datosNuevos.stock;
+        if (datosNuevos.alerta) datos.alerta = datosNuevos.alerta;
+
+        await Articulo.findOneAndUpdate({ _id: datosNuevos._id }, datos).session(session).exec();        
+
+        await session.commitTransaction();
+        session.endSession();
+        return await Articulo.findOne({ _id: datosNuevos._id }).exec();
+    } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
+        throw error; 
+    }
+    
+}
+
+module.exports = { crea, informe, actualiza }

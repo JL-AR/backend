@@ -10,5 +10,7 @@ const paginadoMidd = require('../middlewares/paginadoMiddleware');
 router.post('/', [articuloMidd.validaCamposCrear, articuloMidd.validaInexistencia], async (req, res) => await articuloCtrl.crea(req, res));
 // Informe de articulos //
 router.get('/', paginadoMidd.validaCampos, async (req, res) => await articuloCtrl.informe(req, res));
+// Actualiza articulo existente //
+router.put('/', [articuloMidd.validaCamposUpdate, articuloMidd.validaExistente], async (req, res) => await articuloCtrl.actualiza(req, res));
 
 module.exports = router;
