@@ -6,6 +6,7 @@ const respuestas = require('../helpers/respuestas');
 const solicitudRoutes = require('./solicitudRoute.js');
 const reclamoRoutes = require('./reclamoRoutes');
 const ordenTrabajoRoutes = require('./ordenTrabajoRoutes');
+const articuloRoutes = require('./articuloRoutes');
 
 // Ruta prueba de conexion a API //
 router.get('/', (req, res) => respuestas.ok200(res, 'Bienvenido', {}));
@@ -15,5 +16,7 @@ router.use('/solicitud', solicitudRoutes);
 router.use('/reclamo', reclamoRoutes);
 // Rutas p/ entidad Orden de Trabajo //
 router.use('/ordenTrabajo', ordenTrabajoRoutes);
+// Rutas p/ entidad Articulo //
+router.use('/articulo', articuloRoutes);
 
 module.exports = router;
