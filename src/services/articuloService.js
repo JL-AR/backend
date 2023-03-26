@@ -28,4 +28,9 @@ const crea = async (datosArticulo) => {
     }
 }
 
-module.exports = { crea }
+// Informe general de Articulos, se paginan los datos por pagina y cantidad por pagina mediante param options //
+const informe = async (options) => {
+    return await Articulo.paginate({}, options);
+}
+
+module.exports = { crea, informe }

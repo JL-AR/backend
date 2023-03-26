@@ -61,7 +61,7 @@ const creaReclamo = async (datosReclamo) => {
     }
 }
 
-// Informe general de solicitudes, se paginan los datos por pagina y cantidad por pagina mediante param options //
+// Informe general de reclamos, se paginan los datos por pagina y cantidad por pagina mediante param options //
 const informeReclamo = async (options) => {
     options.populate = ['domicilio', { path: 'domicilio', populate: { path: 'calle', model: 'Calle'}}, 'tracking', { path: 'tracking', populate: { path: 'estado', model: 'Estado' }}, 'ultimo_estado'];
       
