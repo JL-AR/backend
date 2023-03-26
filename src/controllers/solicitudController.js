@@ -7,7 +7,7 @@ const solicitudService = require('../services/solicitudService');
 const creaSolicitud = async (req, res) => await respuestas.ok200(res, 'Solicitud Registrada', await solicitudService.creaSolicitud(req.body));
 // Informe de solicitudes //
 const informeSolicitud = async (req, res) => await respuestas.ok200(res, 'Listado de solicitudes', await solicitudService.informeSolicitud(req.body));
-// Buscador por proximidad //
+// Buscador //
 const busca = async (req, res) => await respuestas.ok200(res, 'Resultado busqueda:', await solicitudService.busca(req.body));
 // Actualiza solicitud existente //
 const actualizaSolicitud = async (req, res) => await respuestas.ok200(res, 'Solicitud Actualizada:', await solicitudService.actualizaSolicitud(req.body));

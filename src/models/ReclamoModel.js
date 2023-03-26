@@ -10,7 +10,8 @@ const Reclamo = new Schema({
     observaciones: { type: String },
     tracking: [{ type: Schema.Types.ObjectId, ref: 'Movimiento', required: true }],
     ultimo_estado: { type: Schema.Types.ObjectId, ref: 'Estado', required: true},
-    email: { type: String, required: true }
+    email: { type: String, required: true },
+    fecha_alta: { type: Date, default: Date.now, required: true },
 });
 
 Reclamo.plugin(mongoosePaginate);

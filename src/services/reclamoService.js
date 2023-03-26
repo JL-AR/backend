@@ -142,4 +142,82 @@ const actualizaReclamo = async (datosNuevos) => {
     
 }
 
-module.exports = { creaReclamo, informeReclamo, actualizaReclamo }
+// Busqueda por campos //
+const busca = async (options) => {
+    options.populate = ['domicilio', 'servicio', 'tracking', { path: 'tracking', populate: { path: 'estado', model: 'Estado' }},
+        { path: 'domicilio', populate: { path: 'calle', model: 'Calle'}}, 'ultimo_estado' ];
+
+    const session = await Reclamo.startSession();
+    session.startTransaction();
+    let result = {};
+    let aggregate = {};
+    let valoresIngresados = "";
+    let valoresABuscar = [];
+    
+    try {        
+        switch (options.campo) {
+            case 'SERVICIO':
+                let servicio = await Servicio.findOne({ codigo: options.valor }).session(session).exec();
+                options.valor = servicio;
+                result = await Reclamo.paginate({ 'servicio': options.valor }, options);
+                break;
+            case 'DOMICILIO':
+                // Palabras ingresadas p/ busqueda //
+                valoresIngresados = options.valor.split(" ");
+                // Busca coincidencia en calles //
+                valoresIngresados.forEach( item => {
+                    valoresABuscar.push({ nombre: { $regex: item.trim(), $options: 'i' }});
+                });                
+                let calles = await Calle.find({ $or: valoresABuscar }).session(session).exec();                
+                // Si se encuentran coincidencias se obtienes los ids de las calles //
+                let callesIds = [];
+                if (calles) calles.forEach(item => callesIds.push(item._id));
+
+                // Se preparan los datos a buscar //
+                let datosABuscar = [];
+                if (callesIds.length) datosABuscar.push({ calle: { $in: callesIds }});
+                valoresIngresados.forEach(item => datosABuscar.push({ numeracion: { $regex: item.trim(), $options: 'i' }}));
+                // Se obtienen Domicilios coincidentes //
+                let direcciones = await Domicilio.find({ $or: datosABuscar }).session(session).exec();
+                direccionesIds = [];
+                direcciones.forEach(item => direccionesIds.push(item._id));
+                // Se obtienen Solicitudes de domicilios correspondientes //
+                result = await Reclamo.paginate({ domicilio: { $in: direccionesIds }}, options);
+                break;
+            case 'NOMBRE':
+                valoresIngresados = options.valor.split(" ");
+                valoresIngresados.forEach( item => {
+                    let nom = { nombre: { $regex: item.trim(), $options: 'i' }};
+                    valoresABuscar.push(nom);
+                });
+
+                result = await Reclamo.paginate({ $or: valoresABuscar }, options);
+                break;
+            case 'RANGO_FECHAS':
+                result = await Reclamo.paginate({ fecha_alta: { $gte: new Date(options.inicio), $lte: new Date(options.fin) }}, options);
+                break;
+            case 'ESTADO':
+                let estado = await Estado.findOne({ codigo: options.valor }).session(session).exec();
+                result = await Reclamo.paginate({ 'ultimo_estado': estado._id }, options);
+                break;
+            case 'CRITICIDAD':
+                let servicios = await Servicio.find({ criticidad: options.valor }).session(session).exec();
+                result = await Reclamo.paginate({ 'servicio': servicios }, options);
+                break;
+            default:
+                break;
+        }
+    } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
+        throw error;
+    }
+
+    await session.commitTransaction();
+    await session.endSession();
+
+   
+    return result;
+}
+
+module.exports = { creaReclamo, informeReclamo, actualizaReclamo, busca }

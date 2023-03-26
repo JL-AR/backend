@@ -9,5 +9,7 @@ const creaReclamo = async (req, res) => await respuestas.ok200(res, 'Reclamo Reg
 const informeReclamo = async (req, res) => await respuestas.ok200(res, 'Listado de reclamos', await reclamoService.informeReclamo(req.body));
 // Actualiza reclamo existente //
 const actualizaReclamo = async (req, res) => await respuestas.ok200(res, 'Reclamo Actualizado:', await reclamoService.actualizaReclamo(req.body));
+// Buscador //
+const busca = async (req, res) => await respuestas.ok200(res, 'Resultado busqueda:', await reclamoService.busca(req.body));
 
-module.exports = { creaReclamo, informeReclamo, actualizaReclamo }
+module.exports = { creaReclamo, informeReclamo, actualizaReclamo, busca }
