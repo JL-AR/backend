@@ -12,5 +12,7 @@ router.post('/', [articuloMidd.validaCamposCrear, articuloMidd.validaInexistenci
 router.get('/', paginadoMidd.validaCampos, async (req, res) => await articuloCtrl.informe(req, res));
 // Actualiza articulo existente //
 router.put('/', [articuloMidd.validaCamposUpdate, articuloMidd.validaExistente], async (req, res) => await articuloCtrl.actualiza(req, res));
+// Busqueda por campos //
+router.get('/busca', /*[reclamoMidd.verificaDatosBusqueda, paginadoMidd.validaCampos],*/ async (req, res) => await articuloCtrl.busca(req, res));
 
 module.exports = router;

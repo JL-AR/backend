@@ -58,4 +58,61 @@ const actualiza = async (datosNuevos) => {
     
 }
 
-module.exports = { crea, informe, actualiza }
+// Busqueda por campos //
+const busca = async (options) => {
+    const session = await Articulo.startSession();
+    session.startTransaction();
+    let result = {};
+    let valoresIngresados = [];
+    let valoresABuscar = [];
+    
+    try {        
+        // Palabras ingresadas p/ busqueda //
+        if (options.campo == 'CODIGO' || options.campo == 'NOMBRE' || options.campo == 'DESCRIPCION') {
+            valoresIngresados = options.valor.split(" ");
+        }
+        switch (options.campo) {
+            case 'CODIGO':
+                valoresIngresados.forEach( item => {
+                    let cod = { codigo: { $regex: item.trim(), $options: 'i' }};
+                    valoresABuscar.push(cod);
+                });
+                result = await Articulo.paginate({ $or: valoresABuscar });
+                break;
+            case 'NOMBRE':
+                valoresIngresados.forEach( item => {
+                    let nom = { nombre: { $regex: item.trim(), $options: 'i' }};
+                    valoresABuscar.push(nom);
+                });
+                result = await Articulo.paginate({ $or: valoresABuscar });
+                break;
+            case 'DESCRIPCION':
+                valoresIngresados.forEach( item => {
+                    let desc = { descripcion: { $regex: item.trim(), $options: 'i' }};
+                    valoresABuscar.push(desc);
+                });
+                result = await Articulo.paginate({ $or: valoresABuscar });
+                break;
+            case 'STOCK':
+                result = await Articulo.paginate({ stock: options.valor });
+                break;
+            case 'ALERTA':
+                result = await Articulo.paginate({ alerta: options.valor });
+                break;
+            default:
+                break;
+        }
+    } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
+        throw error;
+    }
+
+    await session.commitTransaction();
+    await session.endSession();
+
+   
+    return result;
+}
+
+module.exports = { crea, informe, actualiza, busca }
