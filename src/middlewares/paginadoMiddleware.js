@@ -7,4 +7,12 @@ const validaCampos = async (req, res, next) => {
     next();
 }
 
-module.exports = { validaCampos }
+const verificaDatosBusqueda = async (req, res, next) => {
+    if (!req.body.page) req.body.page = 1;
+    if (!req.body.limit) req.body.limit = 10;
+    if (!req.body.campo) req.body.campo = "";
+    if (!req.body.valor) req.body.valor = "";
+    next();
+}
+
+module.exports = { validaCampos, verificaDatosBusqueda }
