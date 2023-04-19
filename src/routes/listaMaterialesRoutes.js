@@ -3,11 +3,11 @@ const router = express.Router();
 // Controllers //
 const listaMaterialesCtrl = require('../controllers/listaMaterialesController');
 // Middlewares //
-/*const articuloMidd = require('../middlewares/articuloMiddleware');*/
+const listadoMidd = require('../middlewares/listaMaterialesMiddleware');
 /*const paginadoMidd = require('../middlewares/paginadoMiddleware');*/
 
-// Registro de articulo //
-router.post('/', /*[articuloMidd.validaCamposCrear, articuloMidd.validaInexistencia],*/ async (req, res) => await listaMaterialesCtrl.crea(req, res));
+// Registro de lista de materiales //
+router.post('/', [listadoMidd.validaCamposCrear, listadoMidd.validaInexistencia, listadoMidd.validaExistenciaArticulos], async (req, res) => await listaMaterialesCtrl.crea(req, res));
 // Informe de articulos //
 /*router.get('/', paginadoMidd.validaCampos, async (req, res) => await articuloCtrl.informe(req, res));
 // Actualiza articulo existente //
