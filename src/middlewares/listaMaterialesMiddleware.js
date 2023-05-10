@@ -20,7 +20,8 @@ const validaExistenciaArticulos = async (req, res, next) => {
         } catch (error) {
             return respuestas.error400(res, `El id '${ element.articulo }' no corresponde a un Articulo.`);
         }
-    });    
+    });
+    next();
 }
 
 // Valida que el articulo no exista //
