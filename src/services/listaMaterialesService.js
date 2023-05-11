@@ -26,4 +26,9 @@ const crea = async (datosNuevaListaMat) => {
     }
 }
 
-module.exports = { crea }
+// Informe lista de materiales, se paginan los datos por pagina y cantidad por pagina mediante param options //
+const informe = async (options) => {
+    return await ListadoMateriales.paginate({}, options);
+}
+
+module.exports = { crea, informe }
