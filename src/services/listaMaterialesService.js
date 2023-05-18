@@ -31,4 +31,27 @@ const informe = async (options) => {
     return await ListadoMateriales.paginate({}, options);
 }
 
-module.exports = { crea, informe }
+const actualiza = async (datosNuevos) => {
+    const session = await ListadoMateriales.startSession();
+    session.startTransaction();
+    let datos = {};
+
+    try {
+        if (datosNuevos.codigo) datos.codigo = datosNuevos.codigo;
+        if (datosNuevos.descripcion) datos.descripcion = datosNuevos.descripcion;
+        if (datosNuevos.articulos) datos.articulos = datosNuevos.articulos;
+
+        await ListadoMateriales.findOneAndUpdate({ _id: datosNuevos._id }, datos).session(session).exec();        
+
+        await session.commitTransaction();
+        session.endSession();
+        return await ListadoMateriales.findOne({ _id: datosNuevos._id }).exec();
+    } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
+        throw error; 
+    }
+    
+}
+
+module.exports = { crea, informe, actualiza }
