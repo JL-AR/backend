@@ -31,4 +31,30 @@ const validaInexistencia = async (req, res, next) => {
     next();
 }
 
-module.exports = { validaCamposCrear, validaExistenciaArticulos, validaInexistencia }
+// Valida campos p/ actualizacion de lista de materiales //
+const validaCamposUpdate = async (req, res, next) => {
+    if (Object.keys(req.body).length === 0) return respuestas.error400(res, `Se debe indicar los campos a actualizar (codigo, descripcion, articulos).`);
+    if (!req.body.codigo && !req.body.descripcion && !req.body.articulos) {
+        return respuestas.error400(res, `Indique un campo valido para actualizar (codigo, descripcion, articulos).`);
+    }
+    if (!Array.isArray(req.body.articulos)) {
+        return respuestas.error400(res, `El campo 'articulos' debe ser un Array`);
+    }
+    next();
+}
+
+// Valida existencia de lista de materiales //
+const validaExistente = async (req, res, next) => {
+    try {
+        if (!req.body._id) {
+            return respuestas.error400(res, `Por favor, indique el _id de la lista de materiales a actualizar.`);
+        }
+        let listado = await ListadoMateriales.findById(req.body._id).exec();
+        if (!listado) return respuestas.error400(res, `El id '${ req.body._id }' no corresponde a una lista de materiales`);
+    } catch (error) {
+        return respuestas.error400(res, `El id '${ req.body._id }' no corresponde a una lista de materiales.`);
+    }
+    next();
+}
+
+module.exports = { validaCamposCrear, validaExistenciaArticulos, validaInexistencia, validaCamposUpdate, validaExistente }

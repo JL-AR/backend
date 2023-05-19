@@ -11,7 +11,7 @@ router.post('/', [listadoMidd.validaCamposCrear, listadoMidd.validaInexistencia,
 // Informe de lista de materiales //
 router.get('/', paginadoMidd.validaCampos, async (req, res) => await listaMaterialesCtrl.informe(req, res));
 // Actualiza lista de materiales existente //
-router.put('/', /*[articuloMidd.validaCamposUpdate, articuloMidd.validaExistente],*/ async (req, res) => await listaMaterialesCtrl.actualiza(req, res));
+router.put('/', [listadoMidd.validaExistente, listadoMidd.validaCamposUpdate, listadoMidd.validaExistenciaArticulos], async (req, res) => await listaMaterialesCtrl.actualiza(req, res));
 // Busqueda por campos //
 /*router.get('/busca', paginadoMidd.verificaDatosBusqueda, async (req, res) => await articuloCtrl.busca(req, res));*/
 
