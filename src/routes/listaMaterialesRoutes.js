@@ -13,6 +13,6 @@ router.get('/', paginadoMidd.validaCampos, async (req, res) => await listaMateri
 // Actualiza lista de materiales existente //
 router.put('/', [listadoMidd.validaExistente, listadoMidd.validaCamposUpdate, listadoMidd.validaExistenciaArticulos], async (req, res) => await listaMaterialesCtrl.actualiza(req, res));
 // Busqueda por campos //
-/*router.get('/busca', paginadoMidd.verificaDatosBusqueda, async (req, res) => await articuloCtrl.busca(req, res));*/
+router.get('/busca', paginadoMidd.verificaDatosBusqueda, async (req, res) => await listaMaterialesCtrl.busca(req, res));
 
 module.exports = router;

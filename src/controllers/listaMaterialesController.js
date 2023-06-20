@@ -10,6 +10,6 @@ const informe = async (req, res) => await respuestas.ok200(res, 'Listas de Mater
 // Actualiza lista existente //
 const actualiza = async (req, res) => await respuestas.ok200(res, 'Listas de Materiales Actualizada:', await listaMaterialesService.actualiza(req.body));
 // Buscador //
-/*const busca = async (req, res) => await respuestas.ok200(res, 'Resultado busqueda:', await articuloService.busca(req.body));*/
+const busca = async (req, res) => await respuestas.ok200(res, 'Resultado busqueda:', await listaMaterialesService.busca(req.body));
 
-module.exports = { crea, informe, actualiza, /*busca*/ }
+module.exports = { crea, informe, actualiza, busca }
