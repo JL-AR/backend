@@ -8,4 +8,4 @@ const Sector = new Schema({
     descripcion : { type: String }
 });
  
-module.exports = mongoose.model('Sector', Sector);
+module.exports = mongoose.model('Sector', Sector, 'sectores');

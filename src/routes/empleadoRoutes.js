@@ -4,9 +4,12 @@ const router = express.Router();
 const empleadoCtrl = require('../controllers/empleadoController');
 // Middlewares //
 const paginadoMidd = require('../middlewares/paginadoMiddleware');
+const empleadoMidd = require('../middlewares/empleadoMiddleware');
+const domicilioMidd = require('../middlewares/domicilioMiddleware');
+const sectorMidd = require('../middlewares/sectorMiddleware');
 
 // Registro de empleado //
-router.post('/', /*[articuloMidd.validaCamposCrear, articuloMidd.validaInexistencia],*/ async (req, res) => await empleadoCtrl.crea(req, res));
+router.post('/', [empleadoMidd.validaCamposCrear, empleadoMidd.validaInexistencia, domicilioMidd.validaCallePorId, sectorMidd.validaExistencia], async (req, res) => await empleadoCtrl.crea(req, res));
 /*/ Informe de articulos //
 router.get('/', paginadoMidd.validaCampos, async (req, res) => await articuloCtrl.informe(req, res));
 // Actualiza articulo existente //
