@@ -40,12 +40,15 @@ const crea = async (datosEmpleado) => {
     }
 }
 
-// Informe general de Articulos, se paginan los datos por pagina y cantidad por pagina mediante param options //
-/*const informe = async (options) => {
-    return await Articulo.paginate({}, options);
+// Informe general de Empleados, se paginan los datos por pagina y cantidad por pagina mediante param options //
+const informe = async (options) => {
+    options.populate = ['domicilio', { path: 'domicilio', populate: { path: 'calle', model: 'Calle'}}, 'sector'];
+    let result = await Empleado.paginate({}, options);
+    await Empleado.populate(result.docs, options.populate);
+    return result;
 }
 
-const actualiza = async (datosNuevos) => {
+/*const actualiza = async (datosNuevos) => {
     const session = await Articulo.startSession();
     session.startTransaction();
     let datos = {};
@@ -127,4 +130,4 @@ const busca = async (options) => {
     return result;
 }*/
 
-module.exports = { crea/*, informe, actualiza, busca*/ }
+module.exports = { crea, informe/*, actualiza, busca*/ }
