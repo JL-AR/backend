@@ -18,4 +18,4 @@ const Empleado = new Schema({
 Empleado.plugin(mongoosePaginate);
 Empleado.plugin(aggregatePaginate);
  
-module.exports = mongoose.model('Empleado', Empleado);
+module.exports = mongoose.model('Empleado', Empleado, 'empleados');

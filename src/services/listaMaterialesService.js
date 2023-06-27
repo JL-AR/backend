@@ -28,7 +28,10 @@ const crea = async (datosNuevaListaMat) => {
 
 // Informe lista de materiales, se paginan los datos por pagina y cantidad por pagina mediante param options //
 const informe = async (options) => {
-    return await ListadoMateriales.paginate({}, options);
+    options.populate = ['articulos', { path: 'articulos', populate: { path: 'articulo', model: 'Articulo'}}];
+    let result = await ListadoMateriales.paginate({}, options);
+    await ListadoMateriales.populate(result.docs, options.populate);
+    return result;
 }
 
 const actualiza = async (datosNuevos) => {
@@ -62,7 +65,8 @@ const busca = async (options) => {
     let valoresIngresados = [];
     let valoresABuscar = [];
     
-    try {        
+    try {
+        options.populate = ['articulos', { path: 'articulos', populate: { path: 'articulo', model: 'Articulo'}}];
         // Palabras ingresadas p/ busqueda //
         if (options.campo == 'CODIGO' || options.campo == 'DESCRIPCION') {
             valoresIngresados = options.valor.split(" ");
@@ -85,6 +89,8 @@ const busca = async (options) => {
             default:
                 break;
         }
+
+        await ListadoMateriales.populate(result.docs, options.populate);
     } catch (error) {
         await session.abortTransaction();
         session.endSession();

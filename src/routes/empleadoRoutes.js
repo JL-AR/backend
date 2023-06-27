@@ -12,9 +12,9 @@ const sectorMidd = require('../middlewares/sectorMiddleware');
 router.post('/', [empleadoMidd.validaCamposCrear, empleadoMidd.validaInexistencia, domicilioMidd.validaCallePorId, sectorMidd.validaExistencia], async (req, res) => await empleadoCtrl.crea(req, res));
 // Informe de empleados //
 router.get('/', paginadoMidd.validaCampos, async (req, res) => await empleadoCtrl.informe(req, res));
-/*/ Actualiza articulo existente //
-router.put('/', [articuloMidd.validaCamposUpdate, articuloMidd.validaExistente], async (req, res) => await articuloCtrl.actualiza(req, res));
+// Actualiza articulo existente //
+router.put('/', /*[articuloMidd.validaCamposUpdate, articuloMidd.validaExistente],*/ async (req, res) => await empleadoCtrl.actualiza(req, res));
 // Busqueda por campos //
-router.get('/busca', paginadoMidd.verificaDatosBusqueda, async (req, res) => await articuloCtrl.busca(req, res));*/
+router.get('/busca', paginadoMidd.verificaDatosBusqueda, async (req, res) => await empleadoCtrl.busca(req, res));
 
 module.exports = router;
