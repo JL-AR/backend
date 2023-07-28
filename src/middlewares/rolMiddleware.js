@@ -7,7 +7,6 @@ const validaExistenciaRoles = async (req, res, next) => {
     for (const id of req.body.roles) {
         try {
             let rol = await RolUsuario.findById(id).exec();
-            console.log(rol);
             if (!rol) return respuestas.error400(res, `El id '${ id }' no corresponde a un Rol de usuario`);
         } catch (error) {
             return respuestas.error400(res, `El id '${ id }' no corresponde a un Rol de usuario`);

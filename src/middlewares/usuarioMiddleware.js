@@ -1,3 +1,4 @@
+const Joi = require('joi');
 const Usuario = require('../models/UsuarioModel');
 const Empleado = require('../models/EmpleadoModel');
 // Helper //
@@ -9,6 +10,22 @@ const validaCamposCrear = async (req, res, next) => {
     if (!req.body.empleado) return respuestas.error400(res, `Se debe indicar un 'empleado' para el Usuario.`);
     if (!req.body.roles || !Array.isArray(req.body.roles) || req.body.roles.length == 0) return respuestas.error400(res, `Se debe indicar los 'roles'([]) para el Listado de Materiales.`);
     next();
+}
+
+const schemaRegister = Joi.object({
+    username: Joi.string().min(6).max(255).required(),
+    email: Joi.string().min(6).max(255).required().email(),
+    password: Joi.string().min(6).max(1024).required(),
+    repeat_password: Joi.ref('password')
+});
+
+const validaRegistro = async (req, res, next) => {
+    let datosRegistros = Object.assign({}, req.body);
+    delete datosRegistros.empleado;
+    delete datosRegistros.roles;
+    const { error } = schemaRegister.validate(datosRegistros);
+    if (error) return respuestas.error400(res, error.details[0].message)    
+    next()
 }
 
 // Valida que el Usuario no exista //
@@ -47,4 +64,4 @@ const validaExistente = async (req, res, next) => {
     next();
 }*/
 
-module.exports = { validaInexistencia, validaCamposCrear/*, validaCamposUpdate, validaExistente*/ }
+module.exports = { validaInexistencia, validaCamposCrear, validaRegistro/*, validaCamposUpdate, validaExistente*/ }

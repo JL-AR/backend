@@ -8,7 +8,7 @@ const usuarioMidd = require('../middlewares/usuarioMiddleware');
 const rolMidd = require('../middlewares/rolMiddleware');
 
 // Registro de usuario //
-router.post('/', [usuarioMidd.validaCamposCrear, usuarioMidd.validaInexistencia, rolMidd.validaExistenciaRoles], async (req, res) => await usuarioCtrl.crea(req, res));
+router.post('/', [usuarioMidd.validaRegistro, usuarioMidd.validaCamposCrear, usuarioMidd.validaInexistencia, rolMidd.validaExistenciaRoles], async (req, res) => await usuarioCtrl.crea(req, res));
 /*/ Informe de empleados //
 router.get('/', paginadoMidd.validaCampos, async (req, res) => await empleadoCtrl.informe(req, res));
 // Actualiza empleado existente //

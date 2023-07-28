@@ -8,6 +8,8 @@ const crea = async (datosUsuario) => {
         let usuario = {
             username: datosUsuario.username,
             empleado: datosUsuario.empleado,
+            email: datosUsuario.email,
+            password: datosUsuario.password,
             roles: datosUsuario.roles
         }
         await Usuario.create([usuario], {session: session});        
