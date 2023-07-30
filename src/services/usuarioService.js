@@ -1,15 +1,19 @@
 // Models //
 const Usuario = require('../models/UsuarioModel');
+// Libs //
+const bcrypt = require('bcrypt');
 
 const crea = async (datosUsuario) => {
     const session = await Usuario.startSession();
     session.startTransaction();
     try {
+        const salt = await bcrypt.genSalt(10);
+        const password = await bcrypt.hash(datosUsuario.password, salt);
         let usuario = {
             username: datosUsuario.username,
             empleado: datosUsuario.empleado,
             email: datosUsuario.email,
-            password: datosUsuario.password,
+            password: password,
             roles: datosUsuario.roles
         }
         await Usuario.create([usuario], {session: session});        
